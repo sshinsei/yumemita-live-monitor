@@ -21,10 +21,6 @@ class SamplingProfile:
     sampling_seconds: int
 
 
-# Back-compat alias (older call sites / docs may still say IntervalProfile)
-IntervalProfile = SamplingProfile
-
-
 @dataclass(frozen=True)
 class TimeBand:
     name: str

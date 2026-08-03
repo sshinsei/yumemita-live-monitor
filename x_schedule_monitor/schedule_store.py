@@ -73,9 +73,6 @@ class ScheduleHintStore:
     def active(self) -> List[ScheduleHint]:
         return [h for h in self._hints.values() if h.status == "active"]
 
-    def active_for_member(self, member_key: str) -> List[ScheduleHint]:
-        return [h for h in self.active() if h.member_key == member_key]
-
     def video_id_candidates(self) -> List[str]:
         ids: List[str] = []
         seen: set[str] = set()

@@ -8,7 +8,6 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional, Union
-from zoneinfo import ZoneInfo
 
 PathLike = Union[str, Path]
 
@@ -49,10 +48,6 @@ def parse_iso(value: Optional[str]) -> Optional[datetime]:
 def parse_youtube_time(value: Optional[str]) -> str:
     dt = parse_iso(value)
     return format_utc(dt) if dt else ""
-
-
-def get_tz(name: str) -> ZoneInfo:
-    return ZoneInfo(name)
 
 
 def ensure_dir(path: PathLike) -> Path:

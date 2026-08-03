@@ -11,3 +11,5 @@ dist/
 build/
 .uv/
 docs/
+assets/
+discovery_scheduler_logic_adjustment.md

@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Sequence
 
 from .config import AppConfig
 from .models import Channel, ScheduleHint, StreamRecord
-from .schedule import SamplingProfile, match_time_band, resolve_profile
+from .schedule import match_time_band, resolve_profile
 from .utils import parse_iso, utc_now
 
 logger = logging.getLogger("x_schedule_monitor.discovery_policy")
@@ -97,18 +97,6 @@ def _best_x_anchor(
         if best is None or dt < best:
             best = dt
     return best
-
-
-def in_near_window(
-    now: datetime,
-    anchor: datetime,
-    *,
-    pre_seconds: int,
-    post_grace_seconds: int,
-) -> bool:
-    start = anchor - timedelta(seconds=pre_seconds)
-    end = anchor + timedelta(seconds=post_grace_seconds)
-    return start <= now <= end
 
 
 def decide_for_known_start(
@@ -192,7 +180,6 @@ def decide_member_discovery(
     streams: Sequence[StreamRecord],
     hints: Sequence[ScheduleHint],
     cfg: AppConfig,
-    profile: Optional[SamplingProfile] = None,  # unused; kept for call-site compat
     now: Optional[datetime] = None,
 ) -> MemberDiscoveryDecision:
     """
@@ -203,7 +190,6 @@ def decide_member_discovery(
     4) In band + valid X planned_start → known-start scheduling
     5) In band + no X → 5min active unscheduled probe
     """
-    del profile  # discovery no longer uses global band profiles for cadence
     now = _ensure_utc(now or utc_now())
 
     member_streams = _member_streams(streams, member_key)

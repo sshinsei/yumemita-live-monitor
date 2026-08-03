@@ -274,13 +274,6 @@ uv sync
 uv run pytest -q
 ```
 
-探测脚本（开发用，非生产路径）：
-
-```powershell
-uv run python scripts/probe_fxtwitter.py
-uv run python scripts/fetch_and_test_latest_schedule.py
-```
-
 ---
 
 ## 数据与日志目录

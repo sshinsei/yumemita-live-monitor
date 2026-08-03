@@ -19,7 +19,6 @@ from .utils import format_utc, parse_iso, utc_now
 from .models import Channel, StreamRecord
 from .reports.scheduler import ReportScheduler
 from .sampler import ViewerSampler
-from .schedule import SamplingProfile, resolve_profile
 from .schedule_feed import ScheduleFeedService
 from .schedule_store import ScheduleHintStore
 from .state import StateStore
@@ -65,34 +64,10 @@ class ViewerMonitor:
         }
         self._next_sample_at: Optional[datetime] = None
         self._next_x_refresh_at: Optional[datetime] = None  # None => immediate if enabled
-        self._last_schedule_band: Optional[str] = None
 
     def request_stop(self, *_args) -> None:
         logger.info("Stop requested; will exit after current cycle")
         self._stop = True
-
-    def current_profile(self, now: Optional[datetime] = None) -> SamplingProfile:
-        """Resolve sampling interval for current Tokyo time band (not discovery)."""
-        now = now or utc_now()
-        if not self.cfg.schedule_enabled:
-            return SamplingProfile(
-                name="legacy",
-                sampling_seconds=self.cfg.sampling_interval_seconds,
-            )
-        profile = resolve_profile(
-            self.cfg.time_bands,
-            self.cfg.off_peak,
-            now_utc=now,
-            tz_name=self.cfg.schedule_timezone,
-        )
-        if profile.name != self._last_schedule_band:
-            logger.info(
-                "Schedule band=%s sampling=%ss",
-                profile.name,
-                profile.sampling_seconds,
-            )
-            self._last_schedule_band = profile.name
-        return profile
 
     def _persist(self) -> None:
         try:
