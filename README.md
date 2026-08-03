@@ -71,7 +71,7 @@ uv --version
 ### 创建 / 同步环境
 
 ```powershell
-cd E:\yumemita_stream_data\X_Schedule_Discovery
+cd path\to\X_Schedule_Discovery   # 仓库根目录
 
 # 按 pyproject.toml + uv.lock 创建 .venv 并安装依赖（含 pytest）
 uv sync
@@ -116,7 +116,7 @@ pip install -r requirements.txt
 ## 快速开始
 
 ```powershell
-cd E:\yumemita_stream_data\X_Schedule_Discovery
+cd path\to\X_Schedule_Discovery   # 仓库根目录
 uv sync
 
 copy config.example.json config.json
@@ -269,7 +269,7 @@ uv run python main.py report --week 2026-W31 -c config.json
 ## 测试
 
 ```powershell
-cd E:\yumemita_stream_data\X_Schedule_Discovery
+cd path\to\X_Schedule_Discovery   # 仓库根目录
 uv sync
 uv run pytest -q
 ```
