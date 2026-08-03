@@ -6,21 +6,6 @@
 
 ---
 
-## 与 Live_Viewers_Count 的关系
-
-| | Live_Viewers_Count | **本项目** |
-| --- | --- | --- |
-| 路径 | `…/Live_Viewers_Count` | `…/X_Schedule_Discovery` |
-| 环境 | 各自 uv / `.venv` | **独立** uv 项目，互不共用 venv |
-| 数据 | 各自 `data/` | **仅**本目录 `data/` |
-| 代码 | 互不 import | **不得修改** Live_Viewers_Count |
-| 报告 | 周报 + 月报（含横向对比） | **个人周报**（无月报 / 五人对比） |
-| X 日程 | 无 | 有（默认关闭） |
-
-本项目是 `yumemita_stream_data` 下的**同级独立目录**，可单独运行。
-
----
-
 ## 功能一览
 
 ### 监控与采集
@@ -36,7 +21,7 @@
 - X **只做日程提示**；无 `video_id` 时不造假直播记录
 - **YouTube 为权威**（状态、开播/下播、同接）
 - **发现与采样分离**：X / 近窗只影响 discovery；采样仍走 time_bands
-- 解析：去 emoji、`明日`→日程日+1、メン限标记可剥除
+- X推文解析：去 emoji、`明日`→日程日+1、メン限标记可剥除
 - `x_schedule_member_only_enabled`：开关控制是否写入 `member_only` 元数据
 
 ### 周报
@@ -52,15 +37,15 @@
 - Python 3.9+（`uv sync` 会选用本机解释器，必要时可下载）
 - 网络可访问 **YouTube Data API v3**
 - 有效的 **YouTube Data API Key**
-- （可选）启用 X 时：X 开发者 **Bearer Token（ベアラートークン）**
+- （可选）启用 X 时：X 开发者 **Bearer Token**
 
 依赖以 `pyproject.toml` / `uv.lock` 为准：
 
-| 依赖 | 用途 |
-| --- | --- |
-| `requests` | YouTube / X HTTP |
-| `tzdata` | Windows 时区（`Asia/Tokyo` 等） |
-| `pytest` | 开发测试（`uv sync` 默认安装 dev 组） |
+| 依赖         | 用途                                    |
+| ------------ | --------------------------------------- |
+| `requests` | YouTube / X HTTP                        |
+| `tzdata`   | Windows 时区（`Asia/Tokyo` 等）       |
+| `pytest`   | 开发测试（`uv sync` 默认安装 dev 组） |
 
 `requirements.txt` 由 `uv export` 生成，**仅作兼容**；请以 uv 为主。
 
@@ -92,15 +77,15 @@ cd E:\yumemita_stream_data\X_Schedule_Discovery
 uv sync
 ```
 
-| 命令 | 说明 |
-| --- | --- |
-| `uv sync` | 创建/更新 `.venv`，安装锁定依赖（含 dev） |
-| `uv sync --no-dev` | 仅生产依赖 |
-| `uv add <包>` | 添加依赖并更新锁文件 |
-| `uv remove <包>` | 移除依赖 |
-| `uv lock` | 仅刷新锁文件 |
-| `uv run <命令>` | 在项目环境中执行（**推荐，无需 activate**） |
-| `uv python list` | 查看可用 Python |
+| 命令                 | 说明                                              |
+| -------------------- | ------------------------------------------------- |
+| `uv sync`          | 创建/更新`.venv`，安装锁定依赖（含 dev）        |
+| `uv sync --no-dev` | 仅生产依赖                                        |
+| `uv add <包>`      | 添加依赖并更新锁文件                              |
+| `uv remove <包>`   | 移除依赖                                          |
+| `uv lock`          | 仅刷新锁文件                                      |
+| `uv run <命令>`    | 在项目环境中执行（**推荐，无需 activate**） |
+| `uv python list`   | 查看可用 Python                                   |
 
 虚拟环境目录：**`.venv/`**（已在 `.gitignore`，勿提交）。
 
@@ -160,12 +145,12 @@ uv run python main.py report --week 2026-W31 -c config.json
 
 输出默认：`data/weekly_reports/<YYYY-Www>/`（各成员 HTML + `summary.json`）。
 
-| 字段 | 默认 | 说明 |
-| --- | --- | --- |
-| `report_timezone` | `Asia/Tokyo` | 周界时区 |
-| `weekly_report_day` | `1`（周一） | 触发星期（ISO） |
-| `weekly_report_time` | `09:00` | 触发时刻 |
-| `weekly_reports_dir` | `data/weekly_reports` | 输出根目录 |
+| 字段                   | 默认                    | 说明            |
+| ---------------------- | ----------------------- | --------------- |
+| `report_timezone`    | `Asia/Tokyo`          | 周界时区        |
+| `weekly_report_day`  | `1`（周一）           | 触发星期（ISO） |
+| `weekly_report_time` | `09:00`               | 触发时刻        |
+| `weekly_reports_dir` | `data/weekly_reports` | 输出根目录      |
 
 ---
 
@@ -173,13 +158,13 @@ uv run python main.py report --week 2026-W31 -c config.json
 
 ### 需要什么凭据？
 
-需要 **Bearer Token（ベアラートークン）**，不是随便一个网页 Cookie。
+需要 **Bearer Token**。
 
-| 项 | 说明 |
-| --- | --- |
-| 用途 | `Authorization: Bearer …` 调用 X API v2 Recent Search |
-| 配置键 | `x_bearer_token_env`（默认名 `X_BEARER_TOKEN`） |
-| 存放位置 | **环境变量**，禁止写入 `config.json` / 提交 Git |
+| 项       | 说明                                                     |
+| -------- | -------------------------------------------------------- |
+| 用途     | `Authorization: Bearer …` 调用 X API v2 Recent Search |
+| 配置键   | `x_bearer_token_env`（默认名 `X_BEARER_TOKEN`）      |
+| 存放位置 | **环境变量**，禁止写入 `config.json` / 提交 Git  |
 
 ### 步骤
 
@@ -203,9 +188,9 @@ setx X_BEARER_TOKEN "你的令牌"
 "x_schedule_refresh_interval_seconds": 7200
 ```
 
-4. 启动：`uv run python main.py run`  
-   - 启动时会立即刷新一次 X  
-   - 之后按 `x_schedule_refresh_interval_seconds` 周期拉取  
+4. 启动：`uv run python main.py run`
+   - 启动时会立即刷新一次 X
+   - 之后按 `x_schedule_refresh_interval_seconds` 周期拉取X 推文
 
 建议先 **只读观察** 若干天，再依赖 near_probe 提频。
 
@@ -221,23 +206,10 @@ setx X_BEARER_TOKEN "你的令牌"
   → 更新 last_x_since_id
 ```
 
-- **不是** FxTwitter；第三方接口未接入生产路径  
-- 未过滤「仅日程」——账号近期原创帖都会进候选，再由解析器判断是否日程  
-- Recent Search 通常约 **近 7 天** 窗口；`max_results` 默认约 20  
-- `x_schedule_enabled=false` 或无 Token：**不请求 X**，仅 YouTube 路径  
-
-### 推荐刷新频率
-
-官方账号一天大约 1～2 条行程相关帖：
-
-| 间隔 | 配置值 | 说明 |
-| --- | --- | --- |
-| 1 小时 | `3600`（示例默认） | 稳妥 |
-| **2 小时** | **`7200`** | 一天少量帖时较合适 |
-| 3 小时 | `10800` | 更省配额；勘误发现可能更晚 |
-| 硬下限 | `≥ 300` | 配置校验最低 5 分钟 |
-
-X 刷新与 YouTube 发现/采样间隔**无关**。
+- 第三方接口未接入生产路径
+- 未过滤「仅日程」——账号近期原创帖都会进候选，再由解析器判断是否日程
+- Recent Search 通常约 **近 7 天** 窗口；`max_results` 默认约 20
+- `x_schedule_enabled=false` 或无 Token：**不请求 X**，仅 YouTube 路径
 
 ---
 
@@ -245,31 +217,31 @@ X 刷新与 YouTube 发现/采样间隔**无关**。
 
 ### X / 近窗
 
-| 字段 | 默认 | 说明 |
-| --- | --- | --- |
-| `x_schedule_enabled` | `false` | 是否启用 X |
-| `x_schedule_username` | `BDP_yumemita` | 拉取账号 |
-| `x_bearer_token_env` | `X_BEARER_TOKEN` | Bearer 所在环境变量名 |
-| `x_schedule_refresh_interval_seconds` | `3600` | X 刷新间隔（秒） |
-| `x_schedule_hints_file` | `data/schedule_hints.json` | 日程提示存储 |
-| `x_schedule_member_only_enabled` | `false` | `true`：メン限行写 `member_only`；`false`：仍剥标记但当普通日程 |
-| `discovery_near_pre_start_window_seconds` | `300` | 开播前近窗 |
-| `discovery_near_post_start_grace_seconds` | `1800` | 开播后宽限 |
-| `discovery_near_probe_interval_seconds` | `30` | 近窗发现间隔（硬下限 ≥30） |
-| `discovery_known_schedule_interval_seconds` | `10800` | 有 YT/X 预约且未进近窗时的 discovery 间隔（3h） |
-| `discovery_no_schedule_off_band_interval_seconds` | `7200` | 无预约 + 非 peak 的 discovery 间隔（2h） |
-| `discovery_active_band_youtube_interval_seconds` | `300` | peak 无预约时的 discovery 间隔（5min） |
-| `discovery_active_band_x_refresh_interval_seconds` | `1800` | peak 无预约时 X 刷新目标间隔（30min） |
+| 字段                                                 | 默认                         | 说明                                                                  |
+| ---------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------- |
+| `x_schedule_enabled`                               | `false`                    | 是否启用 X                                                            |
+| `x_schedule_username`                              | `BDP_yumemita`             | 拉取账号                                                              |
+| `x_bearer_token_env`                               | `X_BEARER_TOKEN`           | Bearer 所在环境变量名                                                 |
+| `x_schedule_refresh_interval_seconds`              | `3600`                     | X 刷新间隔（秒）                                                      |
+| `x_schedule_hints_file`                            | `data/schedule_hints.json` | 日程提示存储                                                          |
+| `x_schedule_member_only_enabled`                   | `false`                    | `true`：メン限行写 `member_only`；`false`：仍剥标记但当普通日程 |
+| `discovery_near_pre_start_window_seconds`          | `300`                      | 开播前近窗                                                            |
+| `discovery_near_post_start_grace_seconds`          | `1800`                     | 开播后宽限                                                            |
+| `discovery_near_probe_interval_seconds`            | `30`                       | 近窗发现间隔（硬下限 ≥30）                                           |
+| `discovery_known_schedule_interval_seconds`        | `10800`                    | 有 YT/X 预约且未进近窗时的 discovery 间隔（3h）                       |
+| `discovery_no_schedule_off_band_interval_seconds`  | `7200`                     | 无预约 + 非 peak 的 discovery 间隔（2h）                              |
+| `discovery_active_band_youtube_interval_seconds`   | `300`                      | peak 无预约时的 discovery 间隔（5min）                                |
+| `discovery_active_band_x_refresh_interval_seconds` | `1800`                     | peak 无预约时 X 刷新目标间隔（30min）                                 |
 
 ### 其它常用
 
-| 字段 | 说明 |
-| --- | --- |
-| `youtube_api_key` | YouTube Data API Key（必填，勿用占位符） |
-| `channels_file` | 成员频道表 |
-| `schedule_timezone` | 时段 band / 日程解读时区（默认 `Asia/Tokyo`） |
+| 字段                          | 说明                                                                                                       |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `youtube_api_key`           | YouTube Data API Key（必填，勿用占位符）                                                                   |
+| `channels_file`             | 成员频道表                                                                                                 |
+| `schedule_timezone`         | 时段 band / 日程解读时区（默认`Asia/Tokyo`）                                                             |
 | `time_bands` / `off_peak` | **仅**定义重点时段窗口 + `sampling_seconds`（同接采样）；**不再**含 idle/scheduled discovery |
-| `sampling_interval_seconds` | 同接采样基准（`schedule_enabled=false` 时用；开启 band 时由 band/off_peak 覆盖） |
+| `sampling_interval_seconds` | 同接采样基准（`schedule_enabled=false` 时用；开启 band 时由 band/off_peak 覆盖）                         |
 
 完整示例见 `config.example.json`。
 
@@ -313,14 +285,14 @@ uv run python scripts/fetch_and_test_latest_schedule.py
 
 ## 数据与日志目录
 
-| 路径 | 内容 |
-| --- | --- |
-| `data/streams.csv` | 直播元数据 |
-| `data/viewer_samples/` | 同接采样长表 |
-| `data/runtime_state.json` | 运行时状态（含 `last_x_since_id`） |
-| `data/schedule_hints.json` | X 日程提示 |
-| `data/weekly_reports/` | 周报 |
-| `logs/` | 日志 |
+| 路径                         | 内容                                |
+| ---------------------------- | ----------------------------------- |
+| `data/streams.csv`         | 直播元数据                          |
+| `data/viewer_samples/`     | 同接采样长表                        |
+| `data/runtime_state.json`  | 运行时状态（含`last_x_since_id`） |
+| `data/schedule_hints.json` | X 日程提示                          |
+| `data/weekly_reports/`     | 周报                                |
+| `logs/`                    | 日志                                |
 
 `config.json`、`data/`、`logs/`、`.venv/` 已忽略提交。
 
@@ -328,22 +300,11 @@ uv run python scripts/fetch_and_test_latest_schedule.py
 
 ## 启用 X 后的观察清单
 
-- 日程帖获取 / 解析成功率  
-- 直接得到 `video_id` 的比例  
-- 靠 X 定向加速提前发现的场次  
-- 首次发现相对 `actualStartTime` 的延迟  
-- YouTube API 与 X API 用量  
-- X 失败时是否仍按 YouTube + time_bands 正常运行  
+- 日程帖获取 / 解析成功率
+- 直接得到 `video_id` 的比例
+- 靠 X 定向加速提前发现的场次
+- 首次发现相对 `actualStartTime` 的延迟
+- YouTube API 与 X API 用量
+- X 失败时是否仍按 YouTube + time_bands 正常运行
 
 ---
-
-## 工单 / 方案文档
-
-- 规划方案：同目录上层 `Live_Viewers_Count/X日程接入方案.md`（描述设计；本项目为独立实现）  
-- 工单：`Live_Viewers_Count/.scratch/x-schedule-discovery/issues/`  
-
----
-
-## License
-
-MIT（可与上游 Live_Viewers_Count 改造项目一致，按需调整）。
