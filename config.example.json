@@ -1,0 +1,57 @@
+{
+  "youtube_api_key": "YOUR_YOUTUBE_API_KEY_HERE",
+  "channels_file": "channels.csv",
+  "data_dir": "data",
+  "log_dir": "logs",
+  "sampling_interval_seconds": 45,
+  "request_timeout_seconds": 10,
+  "max_retries": 3,
+  "discovery_method": "uploads",
+  "discovery_playlist_max_results": 15,
+  "videos_batch_size": 50,
+  "schedule_timezone": "Asia/Tokyo",
+  "schedule_enabled": true,
+  "time_bands": [
+    {
+      "name": "evening_peak",
+      "start": "20:00",
+      "end": "24:00",
+      "sampling_seconds": 45
+    },
+    {
+      "name": "morning",
+      "start": "06:00",
+      "end": "08:00",
+      "sampling_seconds": 45
+    },
+    {
+      "name": "midday",
+      "start": "11:45",
+      "end": "12:30",
+      "sampling_seconds": 45
+    }
+  ],
+  "off_peak": {
+    "sampling_seconds": 60
+  },
+  "state_file": "data/runtime_state.json",
+  "streams_file": "data/streams.csv",
+  "samples_dir": "data/viewer_samples",
+  "report_timezone": "Asia/Tokyo",
+  "weekly_report_day": 1,
+  "weekly_report_time": "09:00",
+  "weekly_reports_dir": "data/weekly_reports",
+  "x_schedule_enabled": false,
+  "x_schedule_username": "BDP_yumemita",
+  "x_bearer_token_env": "X_BEARER_TOKEN",
+  "x_schedule_refresh_interval_seconds": 3600,
+  "x_schedule_hints_file": "data/schedule_hints.json",
+  "x_schedule_member_only_enabled": false,
+  "discovery_near_pre_start_window_seconds": 300,
+  "discovery_near_post_start_grace_seconds": 1800,
+  "discovery_near_probe_interval_seconds": 30,
+  "discovery_known_schedule_interval_seconds": 10800,
+  "discovery_no_schedule_off_band_interval_seconds": 7200,
+  "discovery_active_band_youtube_interval_seconds": 300,
+  "discovery_active_band_x_refresh_interval_seconds": 1800
+}
