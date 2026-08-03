@@ -1,5 +1,5 @@
 """
-X Schedule Discovery
+Yumemita Live Monitor
 Slim YouTube live discovery + concurrent-viewer sampling with X schedule hints.
 
 Sibling project to Live_Viewers_Count — does not read/write that tree.
@@ -13,14 +13,14 @@ import signal
 import sys
 from pathlib import Path
 
-from x_schedule_monitor.channels import ChannelConfigError, load_channels
-from x_schedule_monitor.config import load_config
-from x_schedule_monitor.monitor import ViewerMonitor
-from x_schedule_monitor.schedule_feed import ScheduleFeedService
-from x_schedule_monitor.schedule_store import ScheduleHintStore
-from x_schedule_monitor.utils import setup_logging
+from yumemita_live_monitor.channels import ChannelConfigError, load_channels
+from yumemita_live_monitor.config import load_config
+from yumemita_live_monitor.monitor import ViewerMonitor
+from yumemita_live_monitor.schedule_feed import ScheduleFeedService
+from yumemita_live_monitor.schedule_store import ScheduleHintStore
+from yumemita_live_monitor.utils import setup_logging
 
-logger = logging.getLogger("x_schedule_monitor")
+logger = logging.getLogger("yumemita_live_monitor")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -113,8 +113,8 @@ def cmd_report(cfg_path: str, week: str) -> int:
         print(f"频道配置错误: {e}", file=sys.stderr)
         return 1
 
-    from x_schedule_monitor.reports.scheduler import ReportScheduler
-    from x_schedule_monitor.storage import SampleStore, StreamsStore
+    from yumemita_live_monitor.reports.scheduler import ReportScheduler
+    from yumemita_live_monitor.storage import SampleStore, StreamsStore
 
     Path(cfg.weekly_reports_dir).mkdir(parents=True, exist_ok=True)
     streams_store = StreamsStore(cfg.streams_path)
@@ -136,7 +136,7 @@ def cmd_refresh_x(cfg_path: str, text_file: str | None, post_id: str, created_at
     except Exception as e:
         # Allow offline parse with example config placeholder
         if text_file:
-            from x_schedule_monitor.config import load_config_allow_placeholder
+            from yumemita_live_monitor.config import load_config_allow_placeholder
 
             try:
                 cfg = load_config_allow_placeholder(cfg_path)
@@ -214,7 +214,7 @@ def main(argv: list[str] | None = None) -> int:
         args.config = config_path
     command = args.command or "run"
     if command == "version":
-        from x_schedule_monitor import __version__
+        from yumemita_live_monitor import __version__
 
         print(__version__)
         return 0

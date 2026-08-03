@@ -14,7 +14,7 @@ from zoneinfo import ZoneInfo
 from .models import MEMBER_NAME_ALIASES, ScheduleHint
 from .utils import format_utc, parse_iso
 
-logger = logging.getLogger("x_schedule_monitor.schedule_parser")
+logger = logging.getLogger("yumemita_live_monitor.schedule_parser")
 
 _FW_TRANS = str.maketrans(
     {

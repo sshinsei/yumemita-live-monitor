@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from x_schedule_monitor.config import AppConfig
-from x_schedule_monitor.discovery_policy import (
+from yumemita_live_monitor.config import AppConfig
+from yumemita_live_monitor.discovery_policy import (
     decide_all_members,
     decide_member_discovery,
     desired_x_refresh_interval_seconds,
     sampling_interval_seconds,
 )
-from x_schedule_monitor.models import Channel, ScheduleHint, StreamRecord
-from x_schedule_monitor.schedule import default_off_peak, default_time_bands
+from yumemita_live_monitor.models import Channel, ScheduleHint, StreamRecord
+from yumemita_live_monitor.schedule import default_off_peak, default_time_bands
 
 
 def _cfg(**kw) -> AppConfig:

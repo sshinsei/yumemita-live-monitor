@@ -11,7 +11,7 @@ from .models import RuntimeState, RuntimeStreamState, StreamRecord
 from .storage import StreamsStore
 from .utils import atomic_write_text, ensure_dir
 
-logger = logging.getLogger("x_schedule_monitor.state")
+logger = logging.getLogger("yumemita_live_monitor.state")
 
 STATE_VERSION = 1
 

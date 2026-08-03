@@ -10,7 +10,7 @@ from typing import Dict, Iterable, List, Optional
 from .models import ScheduleHint
 from .utils import atomic_write_text, ensure_dir, parse_iso, utc_now_iso
 
-logger = logging.getLogger("x_schedule_monitor.schedule_store")
+logger = logging.getLogger("yumemita_live_monitor.schedule_store")
 
 
 class ScheduleHintStore:

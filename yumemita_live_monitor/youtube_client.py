@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import requests
 
-logger = logging.getLogger("x_schedule_monitor.youtube")
+logger = logging.getLogger("yumemita_live_monitor.youtube")
 
 
 class YouTubeAPIError(Exception):

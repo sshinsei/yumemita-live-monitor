@@ -173,7 +173,7 @@ def page_shell(
 <div class="wrap">
 {chart_cdn_warn()}
 {body}
-<div class="footer">X Schedule Discovery · 峰值均为本程序采集峰值，非 YouTube 官方完整峰值 · 失败采样不按 0 计入</div>
+<div class="footer">Yumemita Live Monitor · 峰值均为本程序采集峰值，非 YouTube 官方完整峰值 · 失败采样不按 0 计入</div>
 </div>
 </body>
 </html>

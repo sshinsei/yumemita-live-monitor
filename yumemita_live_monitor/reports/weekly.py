@@ -13,7 +13,7 @@ from .html_common import esc, fmt_coverage, fmt_num, json_script, kpi_card, page
 from .stats import MemberStats, build_member_stats, format_duration
 from .windows import TimeWindow
 
-logger = logging.getLogger("x_schedule_monitor.reports.weekly")
+logger = logging.getLogger("yumemita_live_monitor.reports.weekly")
 
 
 def render_weekly_member_html(summary: Dict[str, Any], member: Dict[str, Any]) -> str:

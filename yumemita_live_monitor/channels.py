@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from .models import DEFAULT_MEMBER_COLORS, Channel, stable_fallback_color
 
-logger = logging.getLogger("x_schedule_monitor.channels")
+logger = logging.getLogger("yumemita_live_monitor.channels")
 
 REQUIRED_FIELDS = ("member_key", "member_name", "channel_id", "enabled")
 

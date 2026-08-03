@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock
 
-from x_schedule_monitor.config import AppConfig
-from x_schedule_monitor.schedule_feed import ScheduleFeedService
-from x_schedule_monitor.schedule_store import ScheduleHintStore
-from x_schedule_monitor.x_client import XAPIError
+from yumemita_live_monitor.config import AppConfig
+from yumemita_live_monitor.schedule_feed import ScheduleFeedService
+from yumemita_live_monitor.schedule_store import ScheduleHintStore
+from yumemita_live_monitor.x_client import XAPIError
 
 
 def test_x_api_error_returns_stats_not_raise(tmp_path: Path):

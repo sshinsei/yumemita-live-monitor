@@ -78,26 +78,26 @@ def atomic_write_text(path: PathLike, content: str, encoding: str = "utf-8") -> 
         raise
 
 
-def setup_logging(log_dir: PathLike, log_name: str = "x_schedule_monitor.log") -> logging.Logger:
+def setup_logging(log_dir: PathLike, log_name: str = "yumemita_live_monitor.log") -> logging.Logger:
     ensure_dir(log_dir)
     log_path = Path(log_dir) / log_name
     root = logging.getLogger()
     root.setLevel(logging.INFO)
-    if not any(getattr(h, "_x_schedule_monitor", False) for h in root.handlers):
+    if not any(getattr(h, "_yumemita_live_monitor", False) for h in root.handlers):
         fmt = logging.Formatter(
             "%(asctime)s - %(levelname)s - [%(name)s] %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
         sh = logging.StreamHandler()
         sh.setFormatter(fmt)
-        sh._x_schedule_monitor = True  # type: ignore[attr-defined]
+        sh._yumemita_live_monitor = True  # type: ignore[attr-defined]
         root.addHandler(sh)
 
         fh = logging.FileHandler(log_path, encoding="utf-8")
         fh.setFormatter(fmt)
-        fh._x_schedule_monitor = True  # type: ignore[attr-defined]
+        fh._yumemita_live_monitor = True  # type: ignore[attr-defined]
         root.addHandler(fh)
-    return logging.getLogger("x_schedule_monitor")
+    return logging.getLogger("yumemita_live_monitor")
 
 
 def uploads_playlist_id(channel_id: str) -> str:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from x_schedule_monitor.schedule_parser import (
+from yumemita_live_monitor.schedule_parser import (
     extract_video_id,
     is_schedule_post,
     parse_schedule_post,

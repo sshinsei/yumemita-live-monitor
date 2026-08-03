@@ -19,7 +19,7 @@ from .schedule import (
     default_time_bands,
 )
 
-logger = logging.getLogger("x_schedule_monitor.config")
+logger = logging.getLogger("yumemita_live_monitor.config")
 
 TIME_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
 TIME_RE_24 = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$|^24:00$")

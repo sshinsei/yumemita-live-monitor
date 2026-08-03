@@ -371,7 +371,7 @@ wheels = [
 ]
 
 [[package]]
-name = "x-schedule-discovery"
+name = "yumemita-live-monitor"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

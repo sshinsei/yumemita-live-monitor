@@ -19,7 +19,7 @@ from .models import Channel, ScheduleHint, StreamRecord
 from .schedule import match_time_band, resolve_profile
 from .utils import parse_iso, utc_now
 
-logger = logging.getLogger("x_schedule_monitor.discovery_policy")
+logger = logging.getLogger("yumemita_live_monitor.discovery_policy")
 
 
 @dataclass(frozen=True)

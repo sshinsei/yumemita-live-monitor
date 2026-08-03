@@ -1,4 +1,4 @@
-# Yumemita_Schedule_Discovery
+# yumemita_live_monitor
 
 精简版 **YouTube 直播发现 + 同接采样** 监控，并可选接入 X 官方账号（默认 `@BDP_yumemita`）的配信日程，作为发现调度的辅助信息源。
 
@@ -71,7 +71,7 @@ uv --version
 ### 创建 / 同步环境
 
 ```powershell
-cd path\to\Yumemita_Schedule_Discovery   # 仓库根目录
+cd path\to\yumemita_live_monitor   # 仓库根目录
 
 # 按 pyproject.toml + uv.lock 创建 .venv 并安装依赖（含 pytest）
 uv sync
@@ -116,7 +116,7 @@ pip install -r requirements.txt
 ## 快速开始
 
 ```powershell
-cd path\to\Yumemita_Schedule_Discovery   # 仓库根目录
+cd path\to\yumemita_live_monitor   # 仓库根目录
 uv sync
 
 copy config.example.json config.json
@@ -269,7 +269,7 @@ uv run python main.py report --week 2026-W31 -c config.json
 ## 测试
 
 ```powershell
-cd path\to\Yumemita_Schedule_Discovery   # 仓库根目录
+cd path\to\yumemita_live_monitor   # 仓库根目录
 uv sync
 uv run pytest -q
 ```

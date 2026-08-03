@@ -10,7 +10,7 @@ from typing import Dict, Iterable, List, Optional
 from .models import StreamRecord, ViewerSample
 from .utils import ensure_dir, parse_iso
 
-logger = logging.getLogger("x_schedule_monitor.storage")
+logger = logging.getLogger("yumemita_live_monitor.storage")
 
 STREAMS_FIELDS = [
     "video_id",

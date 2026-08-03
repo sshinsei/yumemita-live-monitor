@@ -11,7 +11,7 @@ from .models import Channel, StreamRecord
 from .utils import format_utc, uploads_playlist_id, utc_now
 from .youtube_client import YouTubeAPIError, YouTubeClient
 
-logger = logging.getLogger("x_schedule_monitor.discovery")
+logger = logging.getLogger("yumemita_live_monitor.discovery")
 
 
 def classify_live_status(live_details: dict) -> str:

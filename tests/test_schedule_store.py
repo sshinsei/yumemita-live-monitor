@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from x_schedule_monitor.models import ScheduleHint
-from x_schedule_monitor.schedule_store import ScheduleHintStore
+from yumemita_live_monitor.models import ScheduleHint
+from yumemita_live_monitor.schedule_store import ScheduleHintStore
 
 
 def _hint(

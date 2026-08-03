@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Sequence
 
 import requests
 
-logger = logging.getLogger("x_schedule_monitor.x_client")
+logger = logging.getLogger("yumemita_live_monitor.x_client")
 
 
 class XAPIError(Exception):

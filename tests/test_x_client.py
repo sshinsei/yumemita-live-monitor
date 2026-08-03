@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 
-from x_schedule_monitor.x_client import XAPIError, XClient
+from yumemita_live_monitor.x_client import XAPIError, XClient
 
 
 def test_auth_error_not_retryable():

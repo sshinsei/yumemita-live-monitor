@@ -12,7 +12,7 @@ from .schedule_store import ScheduleHintStore
 from .utils import utc_now_iso
 from .x_client import XAPIError, XClient, XPost
 
-logger = logging.getLogger("x_schedule_monitor.schedule_feed")
+logger = logging.getLogger("yumemita_live_monitor.schedule_feed")
 
 
 @dataclass

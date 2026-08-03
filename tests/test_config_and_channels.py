@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from x_schedule_monitor.channels import load_channels
-from x_schedule_monitor.config import validate_config_dict
+from yumemita_live_monitor.channels import load_channels
+from yumemita_live_monitor.config import validate_config_dict
 
 
 ROOT = Path(__file__).resolve().parents[1]

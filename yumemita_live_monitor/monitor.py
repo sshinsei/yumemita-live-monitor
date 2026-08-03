@@ -25,7 +25,7 @@ from .state import StateStore
 from .storage import SampleStore, StreamsStore
 from .youtube_client import YouTubeClient
 
-logger = logging.getLogger("x_schedule_monitor.monitor")
+logger = logging.getLogger("yumemita_live_monitor.monitor")
 
 
 class ViewerMonitor:

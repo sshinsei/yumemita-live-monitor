@@ -11,7 +11,7 @@ from .models import Channel, SampleResult, StreamRecord, ViewerSample
 from .utils import format_utc, utc_now
 from .youtube_client import YouTubeAPIError, YouTubeClient
 
-logger = logging.getLogger("x_schedule_monitor.sampler")
+logger = logging.getLogger("yumemita_live_monitor.sampler")
 
 
 def extract_concurrent_viewers(item: dict) -> SampleResult:

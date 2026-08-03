@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from x_schedule_monitor.models import Channel, StreamRecord, ViewerSample
-from x_schedule_monitor.reports.weekly import generate_weekly_report
-from x_schedule_monitor.reports.windows import iso_week_window
+from yumemita_live_monitor.models import Channel, StreamRecord, ViewerSample
+from yumemita_live_monitor.reports.weekly import generate_weekly_report
+from yumemita_live_monitor.reports.windows import iso_week_window
 
 
 def _channels():

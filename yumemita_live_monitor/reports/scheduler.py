@@ -21,7 +21,7 @@ from .windows import (
     previous_complete_iso_week,
 )
 
-logger = logging.getLogger("x_schedule_monitor.reports.scheduler")
+logger = logging.getLogger("yumemita_live_monitor.reports.scheduler")
 
 
 class ReportScheduler:

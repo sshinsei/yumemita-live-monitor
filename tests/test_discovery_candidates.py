@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from x_schedule_monitor.config import AppConfig
-from x_schedule_monitor.discovery import StreamDiscoveryService, UploadsPlaylistDiscovery
-from x_schedule_monitor.models import Channel
+from yumemita_live_monitor.config import AppConfig
+from yumemita_live_monitor.discovery import StreamDiscoveryService, UploadsPlaylistDiscovery
+from yumemita_live_monitor.models import Channel
 
 
 def test_extra_video_id_channel_mismatch_rejected():

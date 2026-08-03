@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from x_schedule_monitor.schedule_parser import parse_schedule_post
+from yumemita_live_monitor.schedule_parser import parse_schedule_post
 
 REAL_POST = """／
 🛸夢限大みゅーたいぷ
