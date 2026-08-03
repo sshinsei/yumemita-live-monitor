@@ -103,24 +103,36 @@ def render_weekly_member_html(summary: Dict[str, Any], member: Dict[str, Any]) -
     · 覆盖率 = 有效样本 / 按直播时长与采样间隔估算的预期样本数。
   </div>
 </section>
-{json_script({'member': member, 'chart': member.get('_chart') or {}}, 'WEEKLY')}
+{json_script(
+        {
+            "member": {k: v for k, v in member.items() if k != "_chart"},
+            "chart": member.get("_chart") or {},
+        },
+        "WEEKLY",
+    )}
 <script>
 (function() {{
   if (typeof Chart === 'undefined') return;
   const m = WEEKLY.member || {{}};
   const chart = WEEKLY.chart || {{}};
   const color = m.color || '{color}';
+  // Chart.js 3+ defaults borderColor to rgba(0,0,0,0.1) — nearly invisible on dark UI.
+  // Assign an explicit palette so every stream series is readable.
+  const palette = [color, '#f472b6', '#34d399', '#fbbf24', '#60a5fa', '#c084fc', '#fb7185', '#2dd4bf'];
   const trend = chart.trend || [];
   if (document.getElementById('trendChart') && trend.length) {{
-    const datasets = trend.map((s, i) => ({{
-      label: s.title || s.video_id,
-      data: (s.points || []).map(p => ({{x: p.t, y: p.v}})),
-      borderColor: i === 0 ? color : undefined,
-      backgroundColor: i === 0 ? color : undefined,
-      tension: 0.2,
-      pointRadius: 2,
-      spanGaps: false,
-    }}));
+    const datasets = trend.map((s, i) => {{
+      const c = palette[i % palette.length];
+      return {{
+        label: s.title || s.video_id,
+        data: (s.points || []).map(p => ({{x: p.t, y: p.v}})),
+        borderColor: c,
+        backgroundColor: c,
+        tension: 0.2,
+        pointRadius: 2,
+        spanGaps: false,
+      }};
+    }});
     new Chart(document.getElementById('trendChart'), {{
       type: 'line',
       data: {{ datasets }},

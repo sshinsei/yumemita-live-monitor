@@ -125,9 +125,9 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; }
 
 
 def chart_js_includes() -> str:
+    """Scripts only — valid inside <head>. Warning banner is injected in body."""
     return """
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<div class="cdn-warn" id="cdn-warn">未能加载 Chart.js CDN。若需离线浏览，请联网一次。</div>
 <script>
 window.addEventListener('load', function() {
   if (typeof Chart === 'undefined') {
@@ -137,6 +137,14 @@ window.addEventListener('load', function() {
 });
 </script>
 """
+
+
+def chart_cdn_warn() -> str:
+    return (
+        '<div class="cdn-warn" id="cdn-warn">'
+        "未能加载 Chart.js CDN。若需离线浏览，请联网一次。"
+        "</div>"
+    )
 
 
 def page_shell(
@@ -163,6 +171,7 @@ def page_shell(
 </head>
 <body>
 <div class="wrap">
+{chart_cdn_warn()}
 {body}
 <div class="footer">X Schedule Discovery · 峰值均为本程序采集峰值，非 YouTube 官方完整峰值 · 失败采样不按 0 计入</div>
 </div>
