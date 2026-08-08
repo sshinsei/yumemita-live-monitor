@@ -1,10 +1,10 @@
 """Per-member discovery interval decision tree (appointment-first).
 
-Decision order:
+Decision order (see assets/discovery_flowchart.png):
 1. Valid YouTube upcoming (nearest) → schedule around that start time
-2. Else if in Tokyo time band → check X hint; else off-band ordinary (2h)
-3. Active band + X planned_start → schedule around that start time
-4. Active band + no X → 5min YouTube probe (+ 30min X refresh cadence)
+2. Else valid X planned_start → schedule around that start time (any band)
+3. Else if in Tokyo peak band → unscheduled probe (~100min YT + 30min X)
+4. Else off-band ordinary (2h)
 """
 
 from __future__ import annotations
@@ -183,12 +183,11 @@ def decide_member_discovery(
     now: Optional[datetime] = None,
 ) -> MemberDiscoveryDecision:
     """
-    Appointment-first decision tree:
+    Appointment-first decision tree (flowchart order):
     1) Valid YT upcoming → known-start scheduling (3h / near_probe / expire)
-    2) Else Tokyo time band (if schedule_enabled)
-    3) Off band → 2h ordinary (no_schedule_off_band)
-    4) In band + valid X planned_start → known-start scheduling
-    5) In band + no X → 5min active unscheduled probe
+    2) Else valid X planned_start → known-start scheduling (any time band)
+    3) Else in peak band → ~100min active unscheduled probe (+ 30min X refresh)
+    4) Else off band → 2h ordinary
     """
     now = _ensure_utc(now or utc_now())
 
@@ -203,6 +202,19 @@ def decide_member_discovery(
     active_yt_iv = cfg.discovery_active_band_youtube_interval_seconds
     active_x_iv = cfg.discovery_active_band_x_refresh_interval_seconds
 
+    # Optional band name for logging (not a gate for YT/X known-start)
+    band_name = ""
+    in_active_band = False
+    if cfg.schedule_enabled:
+        band = match_time_band(
+            cfg.time_bands,
+            now_utc=now,
+            tz_name=cfg.schedule_timezone,
+        )
+        if band is not None:
+            in_active_band = True
+            band_name = band.name
+
     # --- 1. YouTube appointment first (absolute time; no "today" check) ---
     yt_anchor = _best_youtube_anchor(member_streams, now, grace_seconds=grace)
     if yt_anchor is not None:
@@ -215,67 +227,13 @@ def decide_member_discovery(
             pre_seconds=pre,
             grace_seconds=grace,
             near_probe_seconds=near_iv,
+            band_name=band_name,
         )
         if decided is not None:
             return decided
-        # expired YT: fall through as if no valid appointment
+        # expired YT: fall through as if no valid appointment (→ X, then band)
 
-    # --- 2. Time band only when no valid YT appointment ---
-    band_name = ""
-    in_active_band = False
-    if cfg.schedule_enabled:
-        band = match_time_band(
-            cfg.time_bands,
-            now_utc=now,
-            tz_name=cfg.schedule_timezone,
-        )
-        if band is not None:
-            in_active_band = True
-            band_name = band.name
-    else:
-        # schedule_enabled=false: treat as always "off band" for YT cadence,
-        # but still honor X known starts (legacy isolation tests / offline mode).
-        in_active_band = False
-
-    # --- 3. Off band: more frequent than known-schedule ordinary (2h vs 3h) ---
-    if not in_active_band:
-        # Legacy path: allow X known-start even outside bands when schedule disabled
-        if not cfg.schedule_enabled:
-            x_anchor = _best_x_anchor(member_hints, now, grace_seconds=grace)
-            if x_anchor is not None:
-                decided = decide_for_known_start(
-                    member_key=member_key,
-                    now=now,
-                    start=x_anchor,
-                    source="x",
-                    ordinary_interval_seconds=known_iv,
-                    pre_seconds=pre,
-                    grace_seconds=grace,
-                    near_probe_seconds=near_iv,
-                    band_name="legacy",
-                )
-                if decided is not None:
-                    return decided
-            # schedule_enabled=false: still use no-schedule off-band cadence
-            off_band_iv = cfg.discovery_no_schedule_off_band_interval_seconds
-
-        next_run = now + timedelta(seconds=off_band_iv)
-        logger.info(
-            "discovery ordinary: member=%s reason=no_schedule_off_band interval=%ss",
-            member_key,
-            off_band_iv,
-        )
-        return MemberDiscoveryDecision(
-            member_key=member_key,
-            interval_seconds=off_band_iv,
-            mode="ordinary",
-            reason="no_schedule_off_band",
-            anchor_source="none",
-            profile_name=band_name or ("legacy" if not cfg.schedule_enabled else "off_band"),
-            next_run_at=next_run,
-        )
-
-    # --- 4. Active band: X schedule as known plan ---
+    # --- 2. Valid X schedule (independent of peak band) ---
     x_anchor = _best_x_anchor(member_hints, now, grace_seconds=grace)
     if x_anchor is not None:
         decided = decide_for_known_start(
@@ -287,31 +245,49 @@ def decide_member_discovery(
             pre_seconds=pre,
             grace_seconds=grace,
             near_probe_seconds=near_iv,
-            band_name=band_name,
+            band_name=band_name or ("legacy" if not cfg.schedule_enabled else ""),
         )
         if decided is not None:
             return decided
-        # expired X: fall through to unscheduled probe
+        # expired X: fall through to band / off-band
 
-    # --- 5. Active band, no valid plan: probe for surprise streams ---
-    next_run = now + timedelta(seconds=active_yt_iv)
+    # --- 3. No YT and no X: peak band → unscheduled probe ---
+    if in_active_band:
+        next_run = now + timedelta(seconds=active_yt_iv)
+        logger.info(
+            "discovery active_unscheduled_probe: member=%s band=%s "
+            "youtube_interval=%ss x_refresh_interval=%ss",
+            member_key,
+            band_name,
+            active_yt_iv,
+            active_x_iv,
+        )
+        return MemberDiscoveryDecision(
+            member_key=member_key,
+            interval_seconds=active_yt_iv,
+            mode="active_unscheduled_probe",
+            reason="active_band_unscheduled_probe",
+            anchor_source="none",
+            profile_name=band_name,
+            next_run_at=next_run,
+            x_refresh_interval_seconds=active_x_iv,
+        )
+
+    # --- 4. Off band (or schedule_enabled=false): 2h ordinary ---
+    next_run = now + timedelta(seconds=off_band_iv)
     logger.info(
-        "discovery active_unscheduled_probe: member=%s band=%s "
-        "youtube_interval=%ss x_refresh_interval=%ss",
+        "discovery ordinary: member=%s reason=no_schedule_off_band interval=%ss",
         member_key,
-        band_name,
-        active_yt_iv,
-        active_x_iv,
+        off_band_iv,
     )
     return MemberDiscoveryDecision(
         member_key=member_key,
-        interval_seconds=active_yt_iv,
-        mode="active_unscheduled_probe",
-        reason="active_band_unscheduled_probe",
+        interval_seconds=off_band_iv,
+        mode="ordinary",
+        reason="no_schedule_off_band",
         anchor_source="none",
-        profile_name=band_name,
+        profile_name=band_name or ("legacy" if not cfg.schedule_enabled else "off_band"),
         next_run_at=next_run,
-        x_refresh_interval_seconds=active_x_iv,
     )
 
 

@@ -92,8 +92,8 @@ class AppConfig:
     discovery_near_probe_interval_seconds: int = 30
     # Discovery scheduler (appointment-first; time bands only when unscheduled)
     discovery_known_schedule_interval_seconds: int = 10800  # 3h when start known
-    discovery_no_schedule_off_band_interval_seconds: int = 7200  # 2h off peak, no YT
-    discovery_active_band_youtube_interval_seconds: int = 300  # 5min unscheduled probe
+    discovery_no_schedule_off_band_interval_seconds: int = 7200  # 2h off peak, no YT/X
+    discovery_active_band_youtube_interval_seconds: int = 6000  # ~100min peak unscheduled
     discovery_active_band_x_refresh_interval_seconds: int = 1800  # 30min X refresh
 
     @property
@@ -378,7 +378,7 @@ def validate_config_dict(data: Dict[str, Any]) -> AppConfig:
             data, "discovery_no_schedule_off_band_interval_seconds", 7200
         ),
         discovery_active_band_youtube_interval_seconds=_require_int(
-            data, "discovery_active_band_youtube_interval_seconds", 300
+            data, "discovery_active_band_youtube_interval_seconds", 6000
         ),
         discovery_active_band_x_refresh_interval_seconds=_require_int(
             data, "discovery_active_band_x_refresh_interval_seconds", 1800

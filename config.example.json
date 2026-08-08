@@ -52,6 +52,6 @@
   "discovery_near_probe_interval_seconds": 30,
   "discovery_known_schedule_interval_seconds": 10800,
   "discovery_no_schedule_off_band_interval_seconds": 7200,
-  "discovery_active_band_youtube_interval_seconds": 300,
+  "discovery_active_band_youtube_interval_seconds": 6000,
   "discovery_active_band_x_refresh_interval_seconds": 1800
 }

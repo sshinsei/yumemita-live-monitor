@@ -12,16 +12,18 @@
 
 - 频道配置驱动（`channels.csv`）
 - YouTube 自动发现 live / upcoming（uploads 等）
-- **按成员** discovery due；近窗（开播前 5 分钟 + 开播后宽限）可 `near_probe`（默认 30s）
+- **按成员** discovery 调度（预约优先，见下方决策树）
+- 近窗（开播前 5 分钟 + 开播后宽限）可 `near_probe`（默认 30s）
 - 批量同接采样；失败不写假 `0`
-- 可选 **X 日程**：官方 API 增量拉帖 → 解析 `ScheduleHint` → 辅助发现
+- 可选 **X 日程**：官方 API 增量拉帖 → 解析 `ScheduleHint` → 辅助 discovery
 
 ### X 日程要点
 
 - X **只做日程提示**；无 `video_id` 时不造假直播记录
 - **YouTube 为权威**（状态、开播/下播、同接）
-- **发现与采样分离**：X / 近窗只影响 discovery；采样仍走 time_bands
-- X推文解析：去 emoji、`明日`→日程日+1、メン限标记可剥除
+- **发现与采样分离**：X / 近窗只影响 discovery；同接采样仍走 `time_bands` / `off_peak`
+- 无有效 YT 预约时，**有效 X 日程按 known-start 调度**（不依赖是否在重点时段）
+- X 推文解析：去 emoji、`明日`→日程日+1、メン限标记可剥除
 - `x_schedule_member_only_enabled`：开关控制是否写入 `member_only` 元数据
 
 ### 周报
@@ -213,25 +215,58 @@ setx X_BEARER_TOKEN "你的令牌"
 
 ---
 
+## Discovery 调度（按成员）
+
+每个启用成员独立决定「下次 discovery 何时跑」。决策顺序与
+[`assets/discovery_flowchart.png`](assets/discovery_flowchart.png) 一致：
+
+```text
+有有效 YouTube 预约?          （取最近一场仍有效的 upcoming）
+  ├─ 是 → 在近窗?
+  │        ├─ 是     → 近窗探活  每 30 秒
+  │        ├─ 早于近窗 → 低频检查 约 3 小时
+  │        │            next = min(now+3h, 近窗起点)  # 不得跨过近窗
+  │        └─ 过期   → 回退，当作无 YT 预约
+  └─ 否 → 有有效 X 日程?      （planned_start_at，任意时段）
+           ├─ 是 → 在近窗?
+           │        ├─ 是     → 近窗探活  每 30 秒
+           │        └─ 早于近窗 → 低频检查 约 3 小时（同样截断到近窗起点）
+           └─ 否 → 在重点时段? （东京 time_bands）
+                    ├─ 是 → 重点时段探活  YT 约 100 分钟 + X 约 30 分钟
+                    └─ 否 → 非重点检查  2 小时
+```
+
+要点：
+
+| 概念 | 含义 |
+| ---- | ---- |
+| **近窗** | `[开播前 pre, 开播后 grace]`，默认开播前 5 分钟～开播后 30 分钟 |
+| **有效预约** | 用绝对时间差判断，**不**用「是否东京时间今天」 |
+| **YT 优先** | 有有效 YouTube upcoming 时，不看 X、也不套 peak 探活 |
+| **X 不依赖 peak** | 无 YT 时，有效 X 日程在任意时段都按 known-start 调度 |
+| **time_bands** | 只在「无 YT 且无 X」时决定用 peak 探活还是 2h 非重点检查；同接采样仍始终走 band |
+
+---
+
 ## 主要配置说明
 
-### X / 近窗
+### X / Discovery 间隔
 
 | 字段                                                 | 默认                         | 说明                                                                  |
 | ---------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------- |
 | `x_schedule_enabled`                               | `false`                    | 是否启用 X                                                            |
 | `x_schedule_username`                              | `BDP_yumemita`             | 拉取账号                                                              |
 | `x_bearer_token_env`                               | `X_BEARER_TOKEN`           | Bearer 所在环境变量名                                                 |
-| `x_schedule_refresh_interval_seconds`              | `3600`                     | X 刷新间隔（秒）                                                      |
+| `x_schedule_refresh_interval_seconds`              | `3600`                     | 全局 X 刷新间隔（秒）；peak 无预约时可能被缩短为 30min               |
 | `x_schedule_hints_file`                            | `data/schedule_hints.json` | 日程提示存储                                                          |
 | `x_schedule_member_only_enabled`                   | `false`                    | `true`：メン限行写 `member_only`；`false`：仍剥标记但当普通日程 |
-| `discovery_near_pre_start_window_seconds`          | `300`                      | 开播前近窗                                                            |
-| `discovery_near_post_start_grace_seconds`          | `1800`                     | 开播后宽限                                                            |
-| `discovery_near_probe_interval_seconds`            | `30`                       | 近窗发现间隔（硬下限 ≥30）                                           |
-| `discovery_known_schedule_interval_seconds`        | `10800`                    | 有 YT/X 预约且未进近窗时的 discovery 间隔（3h）                       |
-| `discovery_no_schedule_off_band_interval_seconds`  | `7200`                     | 无预约 + 非 peak 的 discovery 间隔（2h）                              |
-| `discovery_active_band_youtube_interval_seconds`   | `300`                      | peak 无预约时的 discovery 间隔（5min）                                |
-| `discovery_active_band_x_refresh_interval_seconds` | `1800`                     | peak 无预约时 X 刷新目标间隔（30min）                                 |
+| `discovery_near_pre_start_window_seconds`          | `300`                      | 开播前进入近窗（秒）                                                  |
+| `discovery_near_post_start_grace_seconds`          | `1800`                     | 开播后近窗宽限（秒）                                                  |
+| `discovery_near_probe_interval_seconds`            | `30`                       | 近窗探活间隔（硬下限 ≥30）                                           |
+| `discovery_known_schedule_interval_seconds`        | `10800`                    | 有 YT/X 预约且未进近窗：低频检查（3h）                                |
+| `discovery_no_schedule_off_band_interval_seconds`  | `7200`                     | 无 YT/X + 非 peak：非重点检查（2h）                                   |
+| `discovery_active_band_youtube_interval_seconds`   | `6000`                     | 无 YT/X + peak：重点时段 YT discovery（约 100min）                    |
+| `discovery_active_band_x_refresh_interval_seconds` | `1800`                     | 同上状态下 X 刷新目标间隔（30min），与 YT 间隔独立                    |
 
 ### 其它常用
 
@@ -239,11 +274,11 @@ setx X_BEARER_TOKEN "你的令牌"
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `youtube_api_key`           | YouTube Data API Key（必填，勿用占位符）                                                                   |
 | `channels_file`             | 成员频道表                                                                                                 |
-| `schedule_timezone`         | 时段 band / 日程解读时区（默认`Asia/Tokyo`）                                                             |
-| `time_bands` / `off_peak` | **仅**定义重点时段窗口 + `sampling_seconds`（同接采样）；**不再**含 idle/scheduled discovery |
+| `schedule_timezone`         | 时段 band / 日程解读时区（默认 `Asia/Tokyo`）                                                             |
+| `time_bands` / `off_peak` | 定义重点时段窗口 + `sampling_seconds`（同接）；discovery 仅在无 YT/X 时用 band 区分 peak / 非 peak     |
 | `sampling_interval_seconds` | 同接采样基准（`schedule_enabled=false` 时用；开启 band 时由 band/off_peak 覆盖）                         |
 
-完整示例见 `config.example.json`。
+完整示例见 `config.example.json`。流程图见 `assets/discovery_flowchart.png`。
 
 ---
 
@@ -295,9 +330,10 @@ uv run pytest -q
 
 - 日程帖获取 / 解析成功率
 - 直接得到 `video_id` 的比例
-- 靠 X 定向加速提前发现的场次
+- 靠 X known-start（含非 peak）提前进入近窗的场次
 - 首次发现相对 `actualStartTime` 的延迟
 - YouTube API 与 X API 用量
-- X 失败时是否仍按 YouTube + time_bands 正常运行
+- X 失败时是否仍按 YouTube 预约 / peak·非 peak 无预约路径正常运行
 
 ---
+

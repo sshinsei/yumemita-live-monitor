@@ -1,4 +1,8 @@
-"""Per-member discovery appointment-first decision tests."""
+"""Per-member discovery appointment-first decision tests.
+
+Flowchart order (assets/discovery_flowchart.png):
+  YT appointment → X schedule (any band) → peak band probe / off-band 2h
+"""
 
 from __future__ import annotations
 
@@ -28,7 +32,7 @@ def _cfg(**kw) -> AppConfig:
         discovery_near_probe_interval_seconds=30,
         discovery_known_schedule_interval_seconds=10800,
         discovery_no_schedule_off_band_interval_seconds=7200,
-        discovery_active_band_youtube_interval_seconds=300,
+        discovery_active_band_youtube_interval_seconds=6000,
         discovery_active_band_x_refresh_interval_seconds=1800,
         x_schedule_refresh_interval_seconds=3600,
     )
@@ -121,7 +125,7 @@ def test_case3_cross_midnight_near_probe():
 
 
 # ---------------------------------------------------------------------------
-# Case 4: no YT, off band → 2h
+# Case 4: no YT, no X, off band → 2h
 # ---------------------------------------------------------------------------
 def test_case4_no_schedule_off_band():
     # JST 15:00 = UTC 06:00 (between midday end 12:30 and evening 20:00)
@@ -140,7 +144,7 @@ def test_case4_no_schedule_off_band():
 
 
 # ---------------------------------------------------------------------------
-# Case 5: no YT, active band, X plan → known start clamp
+# Case 5: no YT, peak band, X plan → known start clamp
 # ---------------------------------------------------------------------------
 def test_case5_active_band_x_known_start():
     # JST 20:00 = UTC 11:00; X planned 21:00 JST = 12:00 UTC → near 11:55
@@ -159,7 +163,7 @@ def test_case5_active_band_x_known_start():
 
 
 # ---------------------------------------------------------------------------
-# Case 6: active band, no YT, no X → 5min probe + 30min x refresh hint
+# Case 6: peak band, no YT, no X → ~100min probe + 30min x refresh hint
 # ---------------------------------------------------------------------------
 def test_case6_active_band_unscheduled_probe():
     now = datetime(2026, 2, 21, 11, 0, 0, tzinfo=timezone.utc)  # JST 20:00
@@ -171,13 +175,13 @@ def test_case6_active_band_unscheduled_probe():
         now=now,
     )
     assert d.mode == "active_unscheduled_probe"
-    assert d.interval_seconds == 300
+    assert d.interval_seconds == 6000
     assert d.reason == "active_band_unscheduled_probe"
     assert d.x_refresh_interval_seconds == 1800
 
 
 # ---------------------------------------------------------------------------
-# Case 7: YT appointment wins over active band 5min probe
+# Case 7: YT appointment wins over active band probe
 # ---------------------------------------------------------------------------
 def test_case7_youtube_overrides_active_band():
     now = datetime(2026, 2, 21, 11, 0, 0, tzinfo=timezone.utc)  # evening_peak
@@ -216,14 +220,13 @@ def test_case8_nearest_of_multiple_upcoming():
 
 
 def test_x_in_pre_window_near_probe():
-    # planned 13:00 UTC; now 12:58 within 300s; need active band for X path
-    # Use schedule_enabled=False legacy path which still honors X anchors
+    # planned 13:00 UTC; now 12:58 within 300s — X path no longer requires peak band
     now = datetime(2026, 2, 21, 12, 58, 0, tzinfo=timezone.utc)
     d = decide_member_discovery(
         "arale",
         streams=[],
         hints=[_hint("arale", "2026-02-21T13:00:00Z")],
-        cfg=_cfg(schedule_enabled=False),
+        cfg=_cfg(),
         now=now,
     )
     assert d.mode == "near_probe"
@@ -238,7 +241,7 @@ def test_x_in_post_grace_near_probe():
         "arale",
         streams=[],
         hints=[_hint("arale", "2026-02-21T13:00:00Z")],
-        cfg=_cfg(schedule_enabled=False),
+        cfg=_cfg(),
         now=now,
     )
     assert d.mode == "near_probe"
@@ -246,16 +249,33 @@ def test_x_in_post_grace_near_probe():
 
 
 def test_past_grace_falls_through_not_near_probe():
-    now = datetime(2026, 2, 21, 14, 0, 0, tzinfo=timezone.utc)  # 60 min after
+    # 60 min after planned start; use off-band clock so fallthrough is 2h ordinary
+    # JST 15:00 = UTC 06:00; planned was JST 13:00 = UTC 04:00 → grace ended 04:30
+    now = datetime(2026, 2, 21, 6, 0, 0, tzinfo=timezone.utc)
     d = decide_member_discovery(
         "arale",
         streams=[],
-        hints=[_hint("arale", "2026-02-21T13:00:00Z")],
-        cfg=_cfg(schedule_enabled=False),
+        hints=[_hint("arale", "2026-02-21T04:00:00Z")],
+        cfg=_cfg(),
         now=now,
     )
     assert d.mode == "ordinary"
     assert d.reason == "no_schedule_off_band"
+    assert d.anchor_source == "none"
+
+
+def test_past_grace_in_peak_falls_to_active_probe():
+    # UTC 14:00 = JST 23:00 (evening_peak); X grace expired → peak probe
+    now = datetime(2026, 2, 21, 14, 0, 0, tzinfo=timezone.utc)
+    d = decide_member_discovery(
+        "arale",
+        streams=[],
+        hints=[_hint("arale", "2026-02-21T13:00:00Z")],
+        cfg=_cfg(),
+        now=now,
+    )
+    assert d.mode == "active_unscheduled_probe"
+    assert d.interval_seconds == 6000
     assert d.anchor_source == "none"
 
 
@@ -266,7 +286,7 @@ def test_youtube_overrides_x_even_when_x_near():
         "arale",
         streams=[_upcoming("arale", "2026-02-21T20:00:00Z")],
         hints=[_hint("arale", "2026-02-21T13:00:00Z")],
-        cfg=_cfg(schedule_enabled=False),
+        cfg=_cfg(),
         now=now,
     )
     assert d.mode == "ordinary"
@@ -304,7 +324,7 @@ def test_one_member_near_does_not_affect_other():
     )
     assert decisions["arale"].mode == "near_probe"
     assert decisions["ritsu"].mode == "active_unscheduled_probe"
-    assert decisions["ritsu"].interval_seconds == 300
+    assert decisions["ritsu"].interval_seconds == 6000
 
 
 def test_superseded_hint_ignored():
@@ -320,18 +340,22 @@ def test_superseded_hint_ignored():
     assert d.anchor_source == "none"
 
 
-def test_x_hint_ignored_outside_active_band_when_schedule_enabled():
-    # Off band + active X should NOT use X path under new rules
+def test_x_hint_used_outside_active_band():
+    """Flowchart: X is checked before peak band — valid off-band X is known-start."""
+    # Off band JST 15:00 + active X planned later same day
     now = datetime(2026, 2, 21, 6, 0, 0, tzinfo=timezone.utc)  # JST 15:00
     d = decide_member_discovery(
         "arale",
         streams=[],
-        hints=[_hint("arale", "2026-02-21T12:00:00Z")],
+        hints=[_hint("arale", "2026-02-21T12:00:00Z")],  # JST 21:00
         cfg=_cfg(schedule_enabled=True),
         now=now,
     )
-    assert d.reason == "no_schedule_off_band"
-    assert d.anchor_source == "none"
+    assert d.anchor_source == "x"
+    assert d.reason == "x_scheduled_outside_near_window"
+    assert d.mode == "ordinary"
+    # near starts 11:55 UTC; now+3h=09:00 UTC (still before near) → next=09:00
+    assert d.next_run_at == datetime(2026, 2, 21, 9, 0, 0, tzinfo=timezone.utc)
 
 
 def test_desired_x_refresh_interval_active_band():
@@ -376,3 +400,19 @@ def test_legacy_schedule_disabled_off_band_uses_no_schedule_interval():
     )
     assert d.interval_seconds == 7200
     assert d.reason == "no_schedule_off_band"
+
+
+def test_youtube_expired_falls_through_to_x():
+    """Expired YT (past grace) should not block a later valid X schedule."""
+    now = datetime(2026, 2, 21, 14, 0, 0, tzinfo=timezone.utc)
+    # YT started 13:00, grace 1800s ends 13:30 → expired
+    # X planned 15:00 → still valid, early → ordinary clamp
+    d = decide_member_discovery(
+        "arale",
+        streams=[_upcoming("arale", "2026-02-21T13:00:00Z")],
+        hints=[_hint("arale", "2026-02-21T15:00:00Z")],
+        cfg=_cfg(),
+        now=now,
+    )
+    assert d.anchor_source == "x"
+    assert d.reason == "x_scheduled_outside_near_window"
