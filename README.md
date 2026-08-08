@@ -171,7 +171,9 @@ uv run python main.py report --week 2026-W31 -c config.json
 ### 步骤
 
 1. 在 [X Developer Portal](https://developer.x.com/) 申请 API 访问，取得 **Bearer Token**。
-2. 设置环境变量（Windows 示例）：
+2. 设置环境变量：
+
+**Windows（PowerShell）**
 
 ```powershell
 # 当前终端
@@ -179,6 +181,18 @@ $env:X_BEARER_TOKEN = "你的令牌"
 
 # 或持久写入用户环境（新开终端生效）
 setx X_BEARER_TOKEN "你的令牌"
+```
+
+**Linux / macOS（bash / zsh）**
+
+```bash
+# 当前终端
+export X_BEARER_TOKEN="你的令牌"
+
+# 或写入 shell 配置，长期生效（按实际 shell 选择其一）
+echo 'export X_BEARER_TOKEN="你的令牌"' >> ~/.bashrc   # bash
+# echo 'export X_BEARER_TOKEN="你的令牌"' >> ~/.zshrc  # zsh
+source ~/.bashrc   # 或 source ~/.zshrc
 ```
 
 3. `config.json`：
