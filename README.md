@@ -28,9 +28,9 @@
 
 ### 周报
 
-- 定时生成上一完整 ISO 周的个人 HTML + `summary.json`
+- 自动只保留**本周**和**上一周**的个人 HTML + `summary.json`
+- 更早的周报不自动回填；需要长期保存时再手工 `report --week`
 - 整场直播按开播时间归属一周（周日晚开播、跨到周一凌晨的场次不拆周）
-- 支持手工 `report --week`
 
 ---
 
@@ -147,6 +147,14 @@ uv run python main.py report --week 2026-W31 -c config.json
 ```
 
 输出默认：`data/weekly_reports/<YYYY-Www>/`（各成员 HTML + `summary.json`）。
+
+监控进程**只自动保存本周和上一周**。启动或每约 6 小时会刷新本周、补齐上一周，并删除更早的自动周报。若要长期留存某一周，请手工跑一次：
+
+```powershell
+uv run python main.py report --week 2026-W26 -c config.json
+```
+
+手工生成的周会写入 `.keep`，之后不会被自动清理。
 
 | 字段                   | 默认                    | 说明            |
 | ---------------------- | ----------------------- | --------------- |
@@ -336,7 +344,7 @@ uv run pytest -q
 | `data/viewer_samples/`     | 同接采样长表                        |
 | `data/runtime_state.json`  | 运行时状态（含`last_x_since_id`） |
 | `data/schedule_hints.json` | X 日程提示                          |
-| `data/weekly_reports/`     | 周报                                |
+| `data/weekly_reports/`     | 周报（自动只留本周+上周）           |
 | `logs/`                    | 日志                                |
 
 `config.json`、`data/`、`logs/`、`.venv/` 已忽略提交。

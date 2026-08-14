@@ -83,12 +83,25 @@ def parse_iso_week_label(label: str) -> Tuple[int, int]:
     return int(y), int(w)
 
 
+def current_iso_week(now_local: datetime, tz_name: str) -> TimeWindow:
+    y, w, _ = now_local.date().isocalendar()
+    return iso_week_window(y, w, tz_name)
+
+
 def previous_complete_iso_week(now_local: datetime, tz_name: str) -> TimeWindow:
     weekday = now_local.isoweekday()
     this_monday = now_local.date() - timedelta(days=weekday - 1)
     prev_monday = this_monday - timedelta(days=7)
     y, w, _ = prev_monday.isocalendar()
     return iso_week_window(y, w, tz_name)
+
+
+def auto_retained_iso_weeks(now_local: datetime, tz_name: str) -> List[TimeWindow]:
+    """Weeks the monitor keeps on disk: previous complete week + current week."""
+    return [
+        previous_complete_iso_week(now_local, tz_name),
+        current_iso_week(now_local, tz_name),
+    ]
 
 
 def list_complete_iso_weeks_until(
