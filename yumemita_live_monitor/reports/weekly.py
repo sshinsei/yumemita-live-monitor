@@ -81,7 +81,7 @@ def render_weekly_member_html(summary: Dict[str, Any], member: Dict[str, Any]) -
 <div class="hero">
   <div class="badge">周报 · {esc(summary.get('label'))}</div>
   <h1><span class="avatar avatar-member">{esc((name or '?')[0])}</span><span class="accent">{esc(name)}</span> 个人周报</h1>
-  <p class="sub">统计区间（{esc(summary.get('timezone'))} 自然周，UTC 边界：{esc(summary.get('start_utc'))} ~ {esc(summary.get('end_utc'))}，左闭右开）</p>
+  <p class="sub">统计区间（{esc(summary.get('timezone'))} 自然周，UTC 边界：{esc(summary.get('start_utc'))} ~ {esc(summary.get('end_utc'))}，按开播时间整场归属）</p>
   <div class="meta-row">
     <span>生成时间：{esc(summary.get('generated_at'))}</span>
     <span>数据来源：streams.csv + viewer_samples</span>
@@ -91,13 +91,14 @@ def render_weekly_member_html(summary: Dict[str, Any], member: Dict[str, Any]) -
 {kpis}
 {charts}
 <section>
-  <div class="sec-title"><h2>直播明细</h2><p>跨周直播仅统计落入本周窗口的采样与时长</p></div>
+  <div class="sec-title"><h2>直播明细</h2><p>整场按开播时间归属本周，跨周不拆分</p></div>
   {table}
 </section>
 <section>
   <div class="note">
     <b>数据口径</b><br>
     · 周期为左闭右开区间，时区 {esc(summary.get('timezone'))}。<br>
+    · 整场直播按开播时间归属一周：周日晚开播、跨到周一的场次整场计入开播当周，不按午夜切断。<br>
     · 平均同接为时间加权平均；API 失败导致的缺失不按 0 计算。<br>
     · 峰值均为「本程序采集峰值」，不声明为 YouTube 官方完整峰值。<br>
     · 覆盖率 = 有效样本 / 按直播时长与采样间隔估算的预期样本数。
@@ -235,6 +236,7 @@ def generate_weekly_report(
         "end_utc": window.end_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "generated_at": utc_now_iso(),
         "metrics_notes": {
+            "attribution": "整场按 actual_start_at（缺省则首个采样 / 预约开播）归属一周，跨周不拆分",
             "peak": "本程序采集峰值，非 YouTube 官方完整峰值",
             "avg": "时间加权平均同接；缺失样本不按 0 计入",
             "coverage": "有效样本数 / 按时长与采样间隔估算的预期样本数",

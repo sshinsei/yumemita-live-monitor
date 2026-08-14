@@ -29,6 +29,7 @@
 ### 周报
 
 - 定时生成上一完整 ISO 周的个人 HTML + `summary.json`
+- 整场直播按开播时间归属一周（周日晚开播、跨到周一凌晨的场次不拆周）
 - 支持手工 `report --week`
 
 ---
@@ -153,6 +154,8 @@ uv run python main.py report --week 2026-W31 -c config.json
 | `weekly_report_day`  | `1`（周一）           | 触发星期（ISO） |
 | `weekly_report_time` | `09:00`               | 触发时刻        |
 | `weekly_reports_dir` | `data/weekly_reports` | 输出根目录      |
+
+口径：统计周是 `report_timezone` 下的 ISO 周 `[周一 00:00, 下周一 00:00)`。场次不按采样时刻切周，而是按开播时间整场计入；跨周后的采样仍留在开播当周。
 
 ---
 

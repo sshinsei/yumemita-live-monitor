@@ -14,6 +14,7 @@ from ..storage import SampleStore, StreamsStore
 from ..utils import parse_iso, utc_now
 from .weekly import generate_weekly_report
 from .windows import (
+    CROSS_WEEK_SAMPLE_LOOKAHEAD,
     TimeWindow,
     iso_week_window,
     list_complete_iso_weeks_until,
@@ -75,7 +76,11 @@ class ReportScheduler:
         return min(times)
 
     def _load_samples_for_window(self, window: TimeWindow):
-        return self.sample_store.read_months(window.months_spanned())
+        # Include a short lookahead so Sunday-night streams that run past
+        # Monday 00:00 still have their Monday samples in this week's report.
+        return self.sample_store.read_months(
+            window.months_spanned(extra_after=CROSS_WEEK_SAMPLE_LOOKAHEAD)
+        )
 
     def generate_week(self, window: TimeWindow) -> Path:
         samples = self._load_samples_for_window(window)

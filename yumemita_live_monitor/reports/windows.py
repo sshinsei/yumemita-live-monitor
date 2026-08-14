@@ -9,6 +9,10 @@ from zoneinfo import ZoneInfo
 
 from ..utils import parse_iso
 
+# Overnight streams may continue past Monday 00:00; their later samples
+# still belong to the week they started in.
+CROSS_WEEK_SAMPLE_LOOKAHEAD = timedelta(hours=48)
+
 
 @dataclass(frozen=True)
 class TimeWindow:
@@ -27,10 +31,15 @@ class TimeWindow:
             dt = dt.astimezone(timezone.utc)
         return self.start_utc <= dt < self.end_utc
 
-    def months_spanned(self) -> List[str]:
+    def months_spanned(self, extra_after: timedelta = timedelta(0)) -> List[str]:
+        """Months that intersect [start, end + extra_after).
+
+        extra_after covers samples that belong to a stream which started
+        inside this window but continued past the week boundary.
+        """
         months: List[str] = []
         cur = self.start_utc
-        end = self.end_utc
+        end = self.end_utc + extra_after
         seen: set[str] = set()
         while cur < end:
             key = cur.strftime("%Y-%m")
@@ -44,9 +53,10 @@ class TimeWindow:
                     cur = cur.replace(month=cur.month + 1, day=1)
                 except ValueError:
                     cur = cur + timedelta(days=28)
-        end_key = (self.end_utc - timedelta(seconds=1)).strftime("%Y-%m")
-        if end_key not in seen:
-            months.append(end_key)
+        if end > self.start_utc:
+            end_key = (end - timedelta(seconds=1)).strftime("%Y-%m")
+            if end_key not in seen:
+                months.append(end_key)
         return months
 
 

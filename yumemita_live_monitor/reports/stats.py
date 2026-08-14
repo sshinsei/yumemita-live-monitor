@@ -108,11 +108,31 @@ def time_weighted_average(
     return weighted_sum / total_w
 
 
-def compute_stream_duration_in_window(
+def stream_anchor_dt(
     rec: StreamRecord,
-    window: TimeWindow,
+    samples: Sequence[ViewerSample] = (),
+) -> Optional[datetime]:
+    """Time used to assign a stream to exactly one report window.
+
+    Prefer actual start, then the first sample, then the scheduled start.
+    A Sunday-night stream that continues into Monday belongs to the week
+    it started, not the week the clock rolled over.
+    """
+    start = parse_iso(rec.actual_start_at)
+    if start is not None:
+        return start
+    if samples:
+        first = parse_iso(samples[0].sampled_at)
+        if first is not None:
+            return first
+    return parse_iso(rec.scheduled_start_at)
+
+
+def compute_stream_duration(
+    rec: StreamRecord,
     samples: Sequence[ViewerSample],
 ) -> float:
+    """Full on-air duration; not clipped to a report window."""
     start = parse_iso(rec.actual_start_at) or (
         parse_iso(samples[0].sampled_at) if samples else None
     )
@@ -122,13 +142,10 @@ def compute_stream_duration_in_window(
     if start is None:
         return 0.0
     if end is None:
-        end = min(window.end_utc, start + timedelta(hours=12))
-
-    s = max(start, window.start_utc)
-    e = min(end, window.end_utc)
-    if e <= s:
+        end = start + timedelta(hours=12)
+    if end <= start:
         return 0.0
-    return (e - s).total_seconds()
+    return (end - start).total_seconds()
 
 
 def expected_sample_count(duration_seconds: float, interval_seconds: float) -> int:
@@ -150,9 +167,6 @@ def build_member_stats(
     samples_by_video: Dict[str, List[ViewerSample]] = defaultdict(list)
     for s in samples:
         if s.member_key != member_key:
-            continue
-        dt = parse_iso(s.sampled_at)
-        if dt is None or not window.contains(dt):
             continue
         samples_by_video[s.video_id].append(s)
 
@@ -180,19 +194,11 @@ def build_member_stats(
             samples_by_video.get(vid, []),
             key=lambda x: x.sampled_at,
         )
-        duration = compute_stream_duration_in_window(rec, window, vsamples)
-        if duration <= 0 and not vsamples:
-            st = parse_iso(rec.actual_start_at) or parse_iso(rec.scheduled_start_at)
-            en = parse_iso(rec.actual_end_at) or window.end_utc
-            if st is None:
-                continue
-            if en <= window.start_utc or st >= window.end_utc:
-                continue
-            duration = max(
-                0.0,
-                (min(en, window.end_utc) - max(st, window.start_utc)).total_seconds(),
-            )
+        anchor = stream_anchor_dt(rec, vsamples)
+        if anchor is None or not window.contains(anchor):
+            continue
 
+        duration = compute_stream_duration(rec, vsamples)
         if duration <= 0 and not vsamples:
             continue
 
@@ -210,10 +216,11 @@ def build_member_stats(
                 peak_local = s.concurrent_viewers
                 peak_local_at = s.sampled_at
 
+        stream_end = parse_iso(rec.actual_end_at)
         tw_avg = time_weighted_average(
             points,
             default_interval=sampling_interval_seconds,
-            window_end=window.end_utc,
+            window_end=stream_end,
         )
         med = float(statistics.median([p[1] for p in points])) if points else None
         exp = expected_sample_count(duration, sampling_interval_seconds)
@@ -252,7 +259,6 @@ def build_member_stats(
     member_tw = time_weighted_average(
         all_points,
         default_interval=sampling_interval_seconds,
-        window_end=window.end_utc,
     )
     member_med = (
         float(statistics.median(all_viewer_values)) if all_viewer_values else None
